@@ -13,7 +13,6 @@ import { pushHandle } from '.';
 
 /* cspell:disable-next-line */
 const PULL_REQUEST_ID = 'MDExOlB1bGxSZXF1ZXN0MzE3MDI5MjU4';
-const COMMIT_HEADLINE = 'Update test';
 
 const octokit = new GitHub('SECRET_GITHUB_TOKEN');
 const infoSpy = jest.spyOn(core, 'info').mockImplementation();
@@ -100,7 +99,6 @@ describe('push event handler', (): void => {
       .post('/graphql', {
         query: mergePullRequestMutation(AllowedMergeMethods.SQUASH),
         variables: {
-          commitHeadline: COMMIT_HEADLINE,
           pullRequestId: PULL_REQUEST_ID,
         },
       })

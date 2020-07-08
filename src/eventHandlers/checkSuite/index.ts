@@ -92,7 +92,6 @@ const getPullRequestInformation = async (
 const tryMerge = async (
   octokit: GitHub,
   {
-    commitMessageHeadline,
     mergeStateStatus,
     mergeableState,
     merged,
@@ -123,7 +122,6 @@ const tryMerge = async (
     logInfo(`Pull request is not open: ${pullRequestState}.`);
   } else {
     await octokit.graphql(mutationSelector(reviewEdges[0]), {
-      commitHeadline: commitMessageHeadline,
       pullRequestId,
     });
   }

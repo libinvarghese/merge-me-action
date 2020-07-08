@@ -90,7 +90,6 @@ export const pullRequestHandle = async (
       await octokit.graphql(
         mutationSelector(pullRequestInformation.reviewEdges[0]),
         {
-          commitHeadline: pullRequest.title as string,
           pullRequestId: pullRequest.node_id as string,
         },
       );

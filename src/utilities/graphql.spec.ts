@@ -18,8 +18,8 @@ describe('mutationSelector', (): void => {
       }),
     ).toMatchInlineSnapshot(`
       "
-        mutation ($commitHeadline: String!, $pullRequestId: ID!) {
-          mergePullRequest(input: {commitBody: \\" \\", commitHeadline: $commitHeadline, mergeMethod: SQUASH, pullRequestId: $pullRequestId}) {
+        mutation ($pullRequestId: ID!) {
+          mergePullRequest(input: {mergeMethod: SQUASH, pullRequestId: $pullRequestId}) {
             clientMutationId
           }
         }

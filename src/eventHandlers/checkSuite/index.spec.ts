@@ -110,7 +110,6 @@ describe('check Suite event handler', (): void => {
       .post('/graphql', {
         query: mergePullRequestMutation(AllowedMergeMethods.SQUASH),
         variables: {
-          commitHeadline: COMMIT_HEADLINE,
           pullRequestId: PULL_REQUEST_ID,
         },
       })

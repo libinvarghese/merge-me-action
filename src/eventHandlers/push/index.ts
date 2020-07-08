@@ -1,27 +1,11 @@
 import { context, GitHub } from '@actions/github';
 
 import { findPullRequestInfoAndReviews as findPullRequestInformationAndReviews } from '../../graphql/queries';
-import {
-  CommitMessageHeadlineGroup,
-  GroupName,
-  PullRequestInformation,
-  Repository,
-} from '../../types';
+import { GroupName, PullRequestInformation, Repository } from '../../types';
 import { mutationSelector } from '../../utilities/graphql';
 import { logError, logInfo, logWarning } from '../../utilities/log';
 
-const COMMIT_HEADLINE_MATCHER = /^(?<commitHeadline>.*)[\s\S]*$/u;
 const SHORT_REFERENCE_MATCHER = /^refs\/heads\/(?<name>.*)$/u;
-
-const getCommitMessageHeadline = (): string => {
-  const {
-    groups: { commitHeadline },
-  } = context.payload.commits[0].message.match(
-    COMMIT_HEADLINE_MATCHER,
-  ) as CommitMessageHeadlineGroup;
-
-  return commitHeadline;
-};
 
 const getReferenceName = (): string => {
   const {
@@ -79,13 +63,12 @@ const getPullRequestInformation = async (
 const tryMerge = async (
   octokit: GitHub,
   {
-    commitMessageHeadline,
     mergeableState,
     merged,
     pullRequestId,
     pullRequestState,
     reviewEdges,
-  }: PullRequestInformation & { commitMessageHeadline: string },
+  }: PullRequestInformation,
 ): Promise<void> => {
   if (mergeableState !== 'MERGEABLE') {
     logInfo(`Pull request is not in a mergeable state: ${mergeableState}.`);
@@ -95,7 +78,6 @@ const tryMerge = async (
     logInfo(`Pull request is not open: ${pullRequestState}.`);
   } else {
     await octokit.graphql(mutationSelector(reviewEdges[0]), {
-      commitHeadline: commitMessageHeadline,
       pullRequestId,
     });
   }
@@ -133,7 +115,6 @@ export const pushHandle = async (
 
       await tryMerge(octokit, {
         ...pullRequestInformation,
-        commitMessageHeadline: getCommitMessageHeadline(),
       });
     }
   } catch (error) {
