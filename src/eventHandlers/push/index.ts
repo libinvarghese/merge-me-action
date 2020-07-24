@@ -1,9 +1,9 @@
-import { context, GitHub } from '@actions/github';
+import { context, getOctokit } from '@actions/github';
 
+import { merge } from '../../common/merge';
 import { findPullRequestInfoAndReviews as findPullRequestInformationAndReviews } from '../../graphql/queries';
 import { GroupName, PullRequestInformation, Repository } from '../../types';
-import { mutationSelector } from '../../utilities/graphql';
-import { logError, logInfo, logWarning } from '../../utilities/log';
+import { logInfo, logWarning } from '../../utilities/log';
 
 const SHORT_REFERENCE_MATCHER = /^refs\/heads\/(?<name>.*)$/u;
 
@@ -16,7 +16,7 @@ const getReferenceName = (): string => {
 };
 
 const getPullRequestInformation = async (
-  octokit: GitHub,
+  octokit: ReturnType<typeof getOctokit>,
   query: {
     referenceName: string;
     repositoryName: string;
@@ -61,7 +61,7 @@ const getPullRequestInformation = async (
 };
 
 const tryMerge = async (
-  octokit: GitHub,
+  octokit: ReturnType<typeof getOctokit>,
   {
     mergeableState,
     merged,
@@ -77,14 +77,15 @@ const tryMerge = async (
   } else if (pullRequestState !== 'OPEN') {
     logInfo(`Pull request is not open: ${pullRequestState}.`);
   } else {
-    await octokit.graphql(mutationSelector(reviewEdges[0]), {
+    await merge(octokit, {
       pullRequestId,
+      reviewEdge: reviewEdges[0],
     });
   }
 };
 
 export const pushHandle = async (
-  octokit: GitHub,
+  octokit: ReturnType<typeof getOctokit>,
   gitHubLogin: string,
 ): Promise<void> => {
   if (context.payload.pusher.name !== gitHubLogin) {
@@ -97,27 +98,23 @@ export const pushHandle = async (
     return;
   }
 
-  try {
-    const pullRequestInformation = await getPullRequestInformation(octokit, {
-      referenceName: getReferenceName(),
-      repositoryName: context.repo.repo,
-      repositoryOwner: context.repo.owner,
+  const pullRequestInformation = await getPullRequestInformation(octokit, {
+    referenceName: getReferenceName(),
+    repositoryName: context.repo.repo,
+    repositoryOwner: context.repo.owner,
+  });
+
+  if (pullRequestInformation === undefined) {
+    logWarning('Unable to fetch pull request information.');
+  } else {
+    logInfo(
+      `Found pull request information: ${JSON.stringify(
+        pullRequestInformation,
+      )}.`,
+    );
+
+    await tryMerge(octokit, {
+      ...pullRequestInformation,
     });
-
-    if (pullRequestInformation === undefined) {
-      logWarning('Unable to fetch pull request information.');
-    } else {
-      logInfo(
-        `Found pull request information: ${JSON.stringify(
-          pullRequestInformation,
-        )}.`,
-      );
-
-      await tryMerge(octokit, {
-        ...pullRequestInformation,
-      });
-    }
-  } catch (error) {
-    logError(error);
   }
 };

@@ -1,9 +1,9 @@
-import { context, GitHub } from '@actions/github';
+import { context, getOctokit } from '@actions/github';
 
+import { merge } from '../../common/merge';
 import { findPullRequestLastApprovedReview } from '../../graphql/queries';
 import { ReviewEdges } from '../../types';
-import { mutationSelector } from '../../utilities/graphql';
-import { logError, logInfo, logWarning } from '../../utilities/log';
+import { logInfo, logWarning } from '../../utilities/log';
 
 interface PullRequestInformation {
   reviewEdges: ReviewEdges;
@@ -20,7 +20,7 @@ interface Repository {
 }
 
 const getPullRequestInformation = async (
-  octokit: GitHub,
+  octokit: ReturnType<typeof getOctokit>,
   query: {
     pullRequestNumber: number;
     repositoryName: string;
@@ -50,7 +50,7 @@ const getPullRequestInformation = async (
 };
 
 export const pullRequestHandle = async (
-  octokit: GitHub,
+  octokit: ReturnType<typeof getOctokit>,
   gitHubLogin: string,
 ): Promise<void> => {
   const { repository, pull_request: pullRequest } = context.payload;
@@ -71,30 +71,24 @@ export const pullRequestHandle = async (
     return;
   }
 
-  try {
-    const pullRequestInformation = await getPullRequestInformation(octokit, {
-      pullRequestNumber: pullRequest.number,
-      repositoryName: repository.name,
-      repositoryOwner: repository.owner.login,
+  const pullRequestInformation = await getPullRequestInformation(octokit, {
+    pullRequestNumber: pullRequest.number,
+    repositoryName: repository.name,
+    repositoryOwner: repository.owner.login,
+  });
+
+  if (pullRequestInformation === undefined) {
+    logWarning('Unable to fetch pull request information.');
+  } else {
+    logInfo(
+      `Found pull request information: ${JSON.stringify(
+        pullRequestInformation,
+      )}.`,
+    );
+
+    await merge(octokit, {
+      pullRequestId: pullRequest.node_id,
+      reviewEdge: pullRequestInformation.reviewEdges[0],
     });
-
-    if (pullRequestInformation === undefined) {
-      logWarning('Unable to fetch pull request information.');
-    } else {
-      logInfo(
-        `Found pull request information: ${JSON.stringify(
-          pullRequestInformation,
-        )}.`,
-      );
-
-      await octokit.graphql(
-        mutationSelector(pullRequestInformation.reviewEdges[0]),
-        {
-          pullRequestId: pullRequest.node_id as string,
-        },
-      );
-    }
-  } catch (error) {
-    logError(error);
   }
 };

@@ -1,3 +1,50 @@
+## [1.3.19](https://github.com/ridedott/merge-me-action/compare/v1.3.18...v1.3.19) (2020-07-18)
+
+### Chores
+
+- **deps-dev:** bump @types/jest from 26.0.4 to 26.0.5
+  ([439e438](https://github.com/ridedott/merge-me-action/commit/439e4381ac02593cc343f1964dcfc50517aff455))
+
+## [1.3.18](https://github.com/ridedott/merge-me-action/compare/v1.3.17...v1.3.18) (2020-07-14)
+
+### Bug Fixes
+
+- gracefully handle merge failures
+  ([d800404](https://github.com/ridedott/merge-me-action/commit/d800404f37826b177ef98e9e6a1854cc12ba8b4a))
+
+### Chores
+
+- **deps-dev:** bump @commitlint/cli from 9.0.1 to 9.1.1
+  ([eaecbb8](https://github.com/ridedott/merge-me-action/commit/eaecbb832e5f834de3f1de88dc98d47477265dfb))
+
+## [1.3.17](https://github.com/ridedott/merge-me-action/compare/v1.3.16...v1.3.17) (2020-07-13)
+
+### Chores
+
+- **deps-dev:** bump @commitlint/config-conventional from 9.0.1 to 9.1.1
+  ([8d3dcf7](https://github.com/ridedott/merge-me-action/commit/8d3dcf7d65ec5bf9487fe49c027ed55a2f0c47b3))
+
+## [1.3.16](https://github.com/ridedott/merge-me-action/compare/v1.3.15...v1.3.16) (2020-07-09)
+
+### Chores
+
+- **deps:** bump npm from 6.14.3 to 6.14.6
+  ([e58c2a7](https://github.com/ridedott/merge-me-action/commit/e58c2a7a661686febdf12ee2079a18999a4cdb19))
+
+## [1.3.15](https://github.com/ridedott/merge-me-action/compare/v1.3.14...v1.3.15) (2020-07-09)
+
+### Chores
+
+- **deps:** bump @actions/github from 2.2.0 to 4.0.0
+  ([d9046ac](https://github.com/ridedott/merge-me-action/commit/d9046acb40d33a7dc5ae33423b403bac58a5264b))
+
+## [1.3.14](https://github.com/ridedott/merge-me-action/compare/v1.3.13...v1.3.14) (2020-07-09)
+
+### Bug Fixes
+
+- use setFailed instead of logError
+  ([7d4c611](https://github.com/ridedott/merge-me-action/commit/7d4c611f0c18b6a7a1194ab7830cee970c668c9f))
+
 ## [1.3.13](https://github.com/ridedott/merge-me-action/compare/v1.3.12...v1.3.13) (2020-07-07)
 
 ### Chores

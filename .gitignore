@@ -10,7 +10,7 @@ yarn-error.log*
 
 # Cache files
 .cache
-*.cache
+# *.cache
 
 # Runtime environment supports npm an Yarn lockfiles. A decision was made to use
 # npm, therefore all other lock files are ignored.
@@ -45,5 +45,5 @@ node_modules
 coverage
 
 # Build output
-dist
-lib
+# dist
+# lib

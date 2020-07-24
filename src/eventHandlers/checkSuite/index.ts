@@ -1,7 +1,8 @@
 /* eslint-disable no-await-in-loop */
 
-import { context, GitHub } from '@actions/github';
+import { context, getOctokit } from '@actions/github';
 
+import { merge } from '../../common/merge';
 import { findPullRequestInfo as findPullRequestInformation } from '../../graphql/queries';
 import {
   MergeableState,
@@ -10,8 +11,7 @@ import {
   PullRequestState,
   ReviewEdges,
 } from '../../types';
-import { mutationSelector } from '../../utilities/graphql';
-import { logError, logInfo, logWarning } from '../../utilities/log';
+import { logInfo, logWarning } from '../../utilities/log';
 
 interface Repository {
   repository: {
@@ -43,7 +43,7 @@ export interface PullRequestInformationCheckSuite
 }
 
 const getPullRequestInformation = async (
-  octokit: GitHub,
+  octokit: ReturnType<typeof getOctokit>,
   query: {
     pullRequestNumber: number;
     repositoryName: string;
@@ -90,7 +90,7 @@ const getPullRequestInformation = async (
 };
 
 const tryMerge = async (
-  octokit: GitHub,
+  octokit: ReturnType<typeof getOctokit>,
   {
     mergeStateStatus,
     mergeableState,
@@ -121,14 +121,15 @@ const tryMerge = async (
   } else if (pullRequestState !== 'OPEN') {
     logInfo(`Pull request is not open: ${pullRequestState}.`);
   } else {
-    await octokit.graphql(mutationSelector(reviewEdges[0]), {
+    await merge(octokit, {
       pullRequestId,
+      reviewEdge: reviewEdges[0],
     });
   }
 };
 
 export const checkSuiteHandle = async (
-  octokit: GitHub,
+  octokit: ReturnType<typeof getOctokit>,
   gitHubLogin: string,
 ): Promise<void> => {
   const pullRequests = context.payload.check_suite.pull_requests as Array<{
@@ -150,26 +151,22 @@ export const checkSuiteHandle = async (
       return;
     }
 
-    try {
-      const pullRequestInformation = await getPullRequestInformation(octokit, {
-        pullRequestNumber: pullRequest.number,
-        repositoryName: context.repo.repo,
-        repositoryOwner: context.repo.owner,
-      });
+    const pullRequestInformation = await getPullRequestInformation(octokit, {
+      pullRequestNumber: pullRequest.number,
+      repositoryName: context.repo.repo,
+      repositoryOwner: context.repo.owner,
+    });
 
-      if (pullRequestInformation === undefined) {
-        logWarning('Unable to fetch pull request information.');
-      } else {
-        logInfo(
-          `Found pull request information: ${JSON.stringify(
-            pullRequestInformation,
-          )}.`,
-        );
+    if (pullRequestInformation === undefined) {
+      logWarning('Unable to fetch pull request information.');
+    } else {
+      logInfo(
+        `Found pull request information: ${JSON.stringify(
+          pullRequestInformation,
+        )}.`,
+      );
 
-        await tryMerge(octokit, pullRequestInformation);
-      }
-    } catch (error) {
-      logError(error);
+      await tryMerge(octokit, pullRequestInformation);
     }
   }
 };
